@@ -103,4 +103,7 @@ return [
     'GET branches/{id}' => 'branches/view',
 
       'GET branches/search' => 'branches/search',
+       // 'GET branches/search/{q}/{id}' => 'branches/search',
+       'GET branches/select/{id}' => 'branches/select',
+
 ];

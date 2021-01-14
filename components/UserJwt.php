@@ -6,6 +6,7 @@ use Firebase\JWT\JWT;
 
 use Yii;
 use yii\web\Request as WebRequest;
+use app\components\Numbers;
 
 /**
  * Trait to handle JWT-authorization process. Should be attached to User model.
@@ -136,7 +137,62 @@ trait UserJwt
             'aud' => $hostInfo,
             'iat' => $currentTime,
             'nbf' => $currentTime,
-            'exp' => static::getExpireIn()
+            'exp' => static::getExpireIn(),
+            'defaultRoute'=>'/book',
+            'idleTimer' => 18600,
+             'menus' =>[
+
+                        [
+                          'id'=> Numbers::randomString(true),
+                            'icon'=> 'mdi mdi-bank-plus',
+                            'title'=> 'Banking',
+                            'isOpen'=> false,
+                            'level'=> 0,
+                            'submenu'=>[
+                            [
+                              'id'=> Numbers::randomString(true),
+                              'icon'=> 'mdi mdi-bank',
+                              'title'=> 'Banks',
+                              'page'=> '/banking/banks',
+                            ],
+                            [
+                              'id'=> Numbers::randomString(true),
+                              'icon'=> 'mdi mdi-source-branch',
+                              'title'=> 'Branches',
+                              'page'=> '/banking/branch',
+                            ],
+                            [
+                              'id'=> Numbers::randomString(true),
+                              'icon'=> 'mdi mdi-account-card-details-outline',
+                              'title'=> 'Accounts',
+                              'page'=> '/banking/account',
+                            ],
+                             [
+                              'id'=> Numbers::randomString(true),
+                              'icon'=> 'mdi mdi-cash-multiple',
+                              'title'=> 'Currencies',
+                              'page'=> '/banking/currencies',
+                            ],
+                          ]
+                        ],
+                                              [
+                          'id'=> Numbers::randomString(),
+                            'icon'=> 'mdi mdi-calendar-clock',
+                            'title'=> 'Calendar',
+                            'isOpen'=> false,
+                            'level'=> 0,
+                            'submenu'=>[
+                            [
+                              'id'=> Numbers::randomString(),
+                              'icon'=> 'mdi mdi-calendar-month-outline',
+                              'title'=> 'dates',
+                              'page'=> '/calendar',
+                            ],
+                          ]
+                        ],
+
+
+                    ]
         ], static::getHeaderToken());
 
         // Set up id

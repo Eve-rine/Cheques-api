@@ -2,17 +2,17 @@
 
 namespace app\models\search;
 
-use app\models\Events;
+use app\models\User;
 use yii\base\Model;
 use yii\data\ActiveDataProvider;
 
-class EventsSearch extends Events
+class UsersSearch extends User
 {
     public function rules()
     {
         return [
-            // [['id','title','start','end','bgColor','category','dateMonth','status','created_at','updated_at','created_by'], 'string'],
-            [['id','title','start','end','bgColor','category','dateMonth','status','created_at','updated_at','created_by'], 'safe'],
+            [['id','name','username','status','created_at','updated_at'], 'string'],
+            [['id','name','username','status','created_at','updated_at'], 'safe'],
         ];
     }
 
@@ -23,7 +23,7 @@ class EventsSearch extends Events
 
     public function search($params)
     {
-        $query = Events::find();
+        $query = User::find();
 
         $dataProvider = new ActiveDataProvider([
             'query' => $query,
@@ -45,15 +45,11 @@ class EventsSearch extends Events
         ]);
 
         $query->andFilterWhere(['like', 'id', $this->id])
-                ->andFilterWhere(['like', 'title', $this->title])
-                ->andFilterWhere(['like', 'start', $this->start])
-                ->andFilterWhere(['like', 'end', $this->end])
-                ->andFilterWhere(['like', 'bgColor', $this->bgColor])
-                ->andFilterWhere(['like', 'category', $this->category])
+                ->andFilterWhere(['like', 'name', $this->name])
+                ->andFilterWhere(['like', 'username', $this->username])
                 ->andFilterWhere(['like', 'status', $this->status])
                 ->andFilterWhere(['like', 'created_at', $this->created_at])
-                ->andFilterWhere(['like', 'updated_at', $this->updated_at])
-                ->andFilterWhere(['like', 'created_by', $this->created_by]);
+                ->andFilterWhere(['like', 'updated_at', $this->updated_at]);
 
         return $dataProvider;
     }

@@ -4,7 +4,7 @@ namespace app\modules\versiSatu\controllers;
 
 use app\components\Controller;
 use app\models\Accounts;
-use app\models\Signatures;
+use app\models\Signatories;
 use yii\web\NotFoundHttpException;
 use app\models\search\AccountsSearch;
 use Yii;
@@ -19,53 +19,32 @@ use app\components\Numbers;
 
 class AccountsController extends Controller
 {
-
     public function actionIndex($id = null)
     {
+             $query = Accounts::find();
 
-       //          $search['AccountsSearch'] = Yii::$app->request->queryParams;
-       //  $searchModel  = new AccountsSearch();
-       //  $dataProvider = $searchModel->search($search);
-       // $dataProvider->pagination = ['pageSize' => 50];
+    $dataProvider = new ActiveDataProvider([
+        'query' => $query,
+        'pagination' => [
+            'pageSize' => 3, //set page size here
+        ]
 
-
-       //  return $this->apiCollection([
-       //      'count'      => $dataProvider->count,
-       //      'dataModels' => $dataProvider->models,
-       //  ], $dataProvider->totalCount);
-
-       //  $Accounts= Accounts::find()->with('signatory')->all();
-       //  return $Accounts;
-
-                     $account = Accounts::find()->with('branch','bank')->asArray()->all();  
-return $account;
-
-
-
-
-    }
-
-        public function actionSelect($id)
-    {
-        $search['AccountsSearch'] = Yii::$app->request->queryParams;
-        $searchModel  = new AccountsSearch();
-        $dataProvider = $searchModel->search($search);
-        $dataProvider->query->andWhere(['branch_id'=> $id]);
-
-        return $this->apiCollection([
+    ]);
+      return $this->apiCollection([
             'count'      => $dataProvider->count,
             'dataModels' => $dataProvider->models,
         ], $dataProvider->totalCount);
+
     }
 
        public function actionCreate()
     {
         $dataRequest['Accounts'] = Yii::$app->request->getBodyParams();
         $model = new Accounts(); 
-            $modelsSignatory = [new Signatures];   
+            $modelsSignatory = [new Signatories];   
         if($model->load($dataRequest)) { 
 
-        $modelsSignatory = Model::createMultiple(Signatures::classname());
+        $modelsSignatory = Model::createMultiple(Signatories::classname());
             Model::loadMultiple($modelsSignatory, Yii::$app->request->post()); 
             $valid = $model->validate();
            // $valid = Model::validateMultiple($modelsSignatory) && $valid;
@@ -77,8 +56,6 @@ return $account;
                     $model->created_by=Yii::$app->user->identity->id;
                     if ($flag = $model->save(false)) {
                         foreach ($modelsSignatory as $modelSign) {
-                            
-                          
                             $modelSign->account_id = $model->account_id;
                              
                                   $modelSign->status = "complete";
@@ -87,9 +64,7 @@ return $account;
                             if (! ($flag = $modelSign->save(false))) {
                                 $transaction->rollBack();
                                 break;
-                                 // return $this->apiValidate($modelSign->errors);
                             }
-
                         }
                     }
                     if ($flag) {
@@ -112,11 +87,11 @@ return $account;
         $model = $this->findModel($id);
         $modelsSignatory = $model->signatory;
         if ($model->load(Yii::$app->request->post())) {
-        $oldIDs = ArrayHelper::map($modelsSignatory, 'sig_id', 'sig_id');
+        $oldIDs = ArrayHelper::map($modelsSignatory, 'signatory_id', 'signatory_id');
           // print_r($oldIDs);
-        $modelsSignatory = Model::createMultiple(Signatures::classname(), $modelsSignatory,'sig_id');
+        $modelsSignatory = Model::createMultiple(Signatories::classname(), $modelsSignatory,'signatory_id');
             Model::loadMultiple($modelsSignatory, Yii::$app->request->post());
-     $deletedIDs = array_diff($oldIDs, array_filter(ArrayHelper::map($modelsSignatory, 'sig_id', 'sig_id')));
+     $deletedIDs = array_diff($oldIDs, array_filter(ArrayHelper::map($modelsSignatory, 'account_id', 'account_id')));
             // validate all models
             $valid = $model->validate();
             // $valid = Model::validateMultiple($modelsSignatory) && $valid;
@@ -125,7 +100,7 @@ return $account;
                 try {
                     if ($flag = $model->save(false)) {
                         if (!empty($deletedIDs)) {
-                            Signatures::deleteAll(['account_id' => $deletedIDs]);
+                            Signatories::deleteAll(['account_id' => $deletedIDs]);
                         }
 
                         foreach ($modelsSignatory as $modelSign) {
@@ -164,18 +139,13 @@ return $account;
     {
 
                
-        // $search['AccountsSearch'] = Yii::$app->request->queryParams;
-        // $searchModel  = new AccountsSearch();
-        // $dataProvider = $searchModel->search($search);
-        // $dataProvider->query->having(['account_id' => $id]);
-        // return $this->apiCollection([
-        //     'dataModels' => $dataProvider->models,
-        // ], $dataProvider->totalCount);
-
-
-        $search = Accounts::find()->with('signatory','bank','branch')->where(['account_id' => $id])->asArray()->one();
-        return $search;
-
+        $search['AccountsSearch'] = Yii::$app->request->queryParams;
+        $searchModel  = new AccountsSearch();
+        $dataProvider = $searchModel->search($search);
+        $dataProvider->query->having(['account_id' => $id]);
+        return $this->apiCollection([
+            'dataModels' => $dataProvider->models,
+        ], $dataProvider->totalCount);
     
 
     }
@@ -201,8 +171,7 @@ return $account;
 
     protected function findModel($id)
     {
-        
-        if(($model = Accounts::findOne($id))!== null) {
+        if(($model = Accounts::findOne($id)) !== null) {
             return $model;
         } else {
             throw new NotFoundHttpException('Resource not found');

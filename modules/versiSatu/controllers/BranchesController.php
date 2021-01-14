@@ -11,28 +11,24 @@ use yii\data\Pagination;
 use yii\data\ActiveDataProvider;
 
 
+
 class BranchesController extends Controller
 {
     public function actionIndex($id = null)
     {
-// return new ActiveDataProvider([
-//     'pagination' => [
-//         'pageSize' => 10,
-//     ],
-// ]);;
-             $query = Branches::find();
 
-    $dataProvider = new ActiveDataProvider([
-        'query' => $query,
-        'pagination' => [
-            'pageSize' => 3, //set page size here
-        ]
+       //          $search['BranchesSearch'] = Yii::$app->request->queryParams;
+       //  $searchModel  = new BranchesSearch();
+       //  $dataProvider = $searchModel->search($search);
+       // $dataProvider->pagination = ['pageSize' => 10];
 
-    ]);
-      return $this->apiCollection([
-            'count'      => $dataProvider->count,
-            'dataModels' => $dataProvider->models,
-        ], $dataProvider->totalCount);
+
+       //  return $this->apiCollection([
+       //      'count'      => $dataProvider->count,
+       //      'dataModels' => $dataProvider->models,
+       //  ], $dataProvider->totalCount);
+             $branchy = Branches::find()->with('bank')->asArray()->all();  // fetches the bankss with
+return $branchy;
 
     }
     public function actionCreate()
@@ -66,10 +62,16 @@ class BranchesController extends Controller
 
       public function actionView($id)
     {
+    return $this->apiItem($this->findModel($id));
+
+    }
+        public function actionSelect($id)
+    {
         $search['BranchesSearch'] = Yii::$app->request->queryParams;
         $searchModel  = new BranchesSearch();
         $dataProvider = $searchModel->search($search);
-        $dataProvider->query->having(['branch_id' => $id]);
+        $dataProvider->query->andWhere(['bank_id'=> $id]);
+
         return $this->apiCollection([
             'count'      => $dataProvider->count,
             'dataModels' => $dataProvider->models,
@@ -79,26 +81,19 @@ class BranchesController extends Controller
 
     protected function findModel($id)
     {
-        if(($model = Branches::findOne($id)) !== null) {
+        if(($model = Branches::findOne($id)) ->with('bank')->asArray() !== null) {
             return $model;
         } else {
             throw new NotFoundHttpException('Resource not found');
         }
     }
 
-        public function actionSearch($id=null)
+        public function actionSearch($id=null,$q)
     {
 
             $search = Branches::find()
                 ->orFilterWhere(['like', 'branch_name', $id])
-                 ->orFilterWhere(['like', 'bank_id', $id])
-                  ->orFilterWhere(['like', 'contact_person_name', $id])
-                   ->orFilterWhere(['like', 'contact_person_number', $id])
-                    ->orFilterWhere(['like', 'contact_person_email', $id])
-                     ->orFilterWhere(['like', 'created_at', $id])
-                      ->orFilterWhere(['like', 'updated_at', $id])
-                       ->orFilterWhere(['like', 'created_by', $id])
-                ->orFilterWhere(['like', 'status', $id])
+                ->andWhere(['bank_id'=>$q])
                 ->all(); 
 
             return $search;

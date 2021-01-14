@@ -48,6 +48,7 @@ use app\models\Accounts;
 
 class Branches extends ActiveRecord
 {
+    public $bank_name;
     public static function tableName()
     {
         return '{{%branches}}';
@@ -64,18 +65,24 @@ class Branches extends ActiveRecord
         return [
             [['branch_name','bank_id', 'physical_address','contact_person_name','contact_person_number','contact_person_email'], 'required'],
             [['branch_name', 'physical_address','contact_person_name','contact_person_number','contact_person_email','status','created_by','created_at','updated_at'],'string', 'max' => 255],
-            [['bank_id'], 'integer']
+            [['bank_id'], 'integer'],
+            [['bank_name'], 'safe']
 
         ];
     }
 
 public function getBank()
 {
-    return $this->hasOne(Banks::className(), ['branch_id' => 'bank_id']);
+    return $this->hasOne(Banks::className(), ['bank_id' => 'bank_id']);
     
 }
     public function getAccounts()
 {
     return $this->hasMany(Accounts::className(), ['branch_id' => 'account_id']);
+}
+
+public function extraFields()
+{
+    return ['bank'];
 }
 }

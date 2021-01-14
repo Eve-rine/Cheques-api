@@ -24,7 +24,6 @@ class BranchesSearch extends Branches
     public function search($params)
     {
         $query = Branches::find();
-
         $dataProvider = new ActiveDataProvider([
             'query' => $query,
             'sort' => [

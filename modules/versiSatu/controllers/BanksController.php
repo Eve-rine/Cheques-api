@@ -19,7 +19,7 @@ class BanksController extends Controller
     $dataProvider = new ActiveDataProvider([
         'query' => $query,
         'pagination' => [
-            'pageSize' => 2, //set page size here
+            'pageSize' => 6, //set page size here
         ]
 
     ]);
@@ -56,7 +56,14 @@ class BanksController extends Controller
 
     public function actionView($id)
     {
-        return $this->apiItem($this->findModel($id));
+               $search['BanksSearch'] = Yii::$app->request->queryParams;
+        $searchModel  = new BanksSearch();
+        $dataProvider = $searchModel->search($search);
+        $dataProvider->query->having(['bank_id' => $id]);
+        return $this->apiCollection([
+            'count'      => $dataProvider->count,
+            'dataModels' => $dataProvider->models,
+        ], $dataProvider->totalCount);
     }
 
 
@@ -68,99 +75,27 @@ class BanksController extends Controller
             throw new NotFoundHttpException('Resource not found');
         }
     }
-        public function actionExcel() {  
-        $searchModel = new BanksSearch();
-        $dataProvider = $searchModel->search(Yii::$app->request->queryParams);
-        $exporter = new Spreadsheet(['dataProvider' => $dataProvider,
-             'columns' => [
-                [
-                    'attribute' => 'bank_name',
-                    'label' => 'Bank',
-                    'content' => function($model){
-                        return $model->bank_name;
-                    }
-                ],
-                [
-                    'attribute' => 'head_office_number',
-                    'label' => 'Head office number',
-                    'content' => function($model){
-                        return $model->head_office_number;
-                    }
-                ],
-                [
-                    'attribute' => 'head_office_address',
-                    'label' => 'Head office address',
-                    'content' => function($model){
-                        return $model->head_office_address;
-                    }
-                ],
-                [
-                    'attribute' => 'head_office_email',
-                    'label' => 'Head office email',
-                    'content' => function($model){
-                        return $model->head_office_email;
-                    }
-                ],
-                [
-                    'attribute' => 'created_at',
-                    'content' => function($model){
-                        return date('d M, Y', $model->created_at);
-                    }
-                ],
-                [
-                    'attribute' => 'created by',
-                    'content' => function($model){
-                        return Username::createdBy($id = $model->created_by);
-                    }
-                ]
-              ],
-    ]);
-        return $exporter->send('items.xlsx');
+
+           public function actionSearch($id=null)
+    {
+
+            $search = Banks::find()
+                 ->andFilterWhere(['like', 'bank_name', $id])            
+                ->all(); 
+
+            return $search;
+
+    //               $search['BanksSearch'] = Yii::$app->request->queryParams;
+    //     $searchModel  = new BanksSearch();
+    //     $dataProvider = $searchModel->search($search);
+    //    $dataProvider->query->having(['bank_name' => $id]);
+
+
+    //     return $this->apiCollection([
+    //         'count'      => $dataProvider->count,
+    //         'dataModels' => $dataProvider->models,
+    //     ], $dataProvider->totalCount);
+       
     }
-    public function actionPdf() {  
-        $searchModel = new BanksSearch();
-        $dataProvider = $searchModel->search(Yii::$app->request->queryParams);
-     $content = $this->renderPartial('/banking/_list_banks',['dataProvider'=>$dataProvider]);
-    // setup kartik\mpdf\Pdf component
-     $pdf = new Pdf([
-        // set to use core fonts only
-        'mode' => Pdf::MODE_CORE, 
-        // A4 paper format
-        'format' => Pdf::FORMAT_A4, 
-        // portrait orientation
-        'orientation' => Pdf::ORIENT_PORTRAIT, 
-        // stream to browser inline
-        'destination' => Pdf::DEST_BROWSER, 
-        // your html content input
-        'content' => $content, 
-        // format content from your own css file if needed or use the
-        // enhanced bootstrap css built by Krajee for mPDF formatting 
-        //'cssFile' => '@vendor/kartik-v/yii2-mpdf/assets/kv-mpdf-bootstrap.min.css',
-        // any css to be embedded if required
-        'cssInline' => '.kv-heading-1{font-size:18px}', 
-         // set mPDF properties on the fly
-        'options' => [
-            'title' => 'Medfast Pharmacy',
-            'showWatermarkText'=>true,
-            'showWatermarkImage'=>false,
-        ],
-         // call mPDF methods on the fly
-        'methods' => [ 
-            'SetHeader'=>[''], 
-            'SetFooter'=>'Medfast Pharmacy',
-            'setWatermarkText'=>['Medfast Pharmacy'], 
-            //'setWatermarkImage'=>['/Drozones.png'], 
-        ]
-    ]);
-    
-    // return the pdf output as per the destination setting
-     $pin = (new \yii\db\Query())
-             ->select(['pin'])
-             ->from('users')
-             ->where(['id' => Yii::$app->user->identity->id])
-             ->one();
-     $password = Yii::$app->security->validateData($pin['pin'],'123456',false);
-     $pdf->getApi()->setProtection(array(),$password);
-    return $pdf->render(); 
-    }
+
 }

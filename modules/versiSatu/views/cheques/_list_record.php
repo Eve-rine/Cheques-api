@@ -1,10 +1,10 @@
 <div style="display: none">
     <?php
-        $accountCheque = (new \yii\db\Query())
-             ->select(['cheque'])
-             ->from('accounts')
-             ->where(['account_id' => $model->account_id])
-             ->one();
+        // $accountCheque = (new \yii\db\Query())
+        //      ->select(['cheque'])
+        //      ->from('accounts')
+        //      ->where(['account_id' => $model->account_id])
+        //      ->one();
         $bank_code = (new \yii\db\Query())
              ->select(['bank_code'])
              ->from('banks')
@@ -17,7 +17,7 @@
              ->one();
     ?>
 </div>
-<div class="cheque-view" style="background-image: url(<?= Yii::getAlias('@webroot').'/cheques/'.$accountCheque['cheque']?>);background-repeat: no-repeat;background-size: 100% 100%;"> 
+
         <div id="payDate" style="margin-top: 15px; text-align: center !important; margin-left: 78%;font-size: 13px;text-transform: uppercase;">
            <?= $words = app\components\Converter::convertDate($model->pay_date); ?>
         </div>

@@ -5,7 +5,7 @@ namespace app\models;
 use yii\db\ActiveRecord;
 use app\models\Banks;
 use app\models\Branches;
-use app\models\Signatories;
+use app\models\Signatures;
 
 
 /**
@@ -56,6 +56,7 @@ use app\models\Signatories;
 class Accounts extends ActiveRecord
 {
     public $signatories;
+    public $all_signatories;
 
     public static function tableName()
     {
@@ -71,10 +72,10 @@ class Accounts extends ActiveRecord
     public function rules()
     {
         return [
-            [['bank_id', 'branch_id','account_name','account_number','kra_pin','minimum_signatories'], 'safe'],
-            [['account_name','account_number','kra_pin','minimum_signatories','status','created_by','created_at','updated_at'],'string', 'max' => 255],
-            [['bank_id','branch_id'], 'integer'],
-            ['cheque', 'file']
+            [['bank_id', 'branch_id','currency_id','account_name','account_number','kra_pin'], 'safe'],
+            [['account_name','account_number','kra_pin','status','created_by','created_at','updated_at'],'string', 'max' => 255],
+            [['bank_id','branch_id','currency_id'], 'integer'],
+            ['all_signatories', 'safe'],
 
         ];
     }
@@ -91,7 +92,7 @@ public function getBank()
 }
 public function getSignatory()
 {
-    return $this->hasMany(Signatories::className(), ['account_id' => 'account_id']);
+    return $this->hasMany(Signatures::className(), ['account_id' => 'account_id']);
     
 }
 }

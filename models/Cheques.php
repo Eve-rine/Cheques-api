@@ -32,6 +32,16 @@ class Cheques extends ActiveRecord
             ['created_at', 'string', 'max' => 50],
             ['updated_at', 'string', 'max' => 50],
             ['created_by', 'string', 'max' => 50],
+             [['cheque_no'],'checkUniq'],
         ];
     }
+    public function checkUniq($attribute, $params)
+{
+    $no = self::find()->where(['cheque_no'=>$this->cheque_no])
+    ->andWhere(['account_id'=>$this->account_id])
+    ->one();
+    if (isset($no) && $no!=null)
+        $this->addError($attribute, 'Cheque Number already added.');
+
+}
 }

@@ -39,11 +39,11 @@ class BatchController extends Controller
 
            public function actionCreate()
     {
-       
+                $dataRequest['Batch'] = Yii::$app->request->getBodyParams();
         $model = new Batch(); 
             $modelsCheque = [new Cheques];   
-        if ($model->load(Yii::$app->request->post())) {  
-
+        if($model->load($dataRequest)) { 
+       
         $modelsCheque = Model::createMultiple(Cheques::classname());
             Model::loadMultiple($modelsCheque, Yii::$app->request->post()); 
             $valid = $model->validate();
@@ -89,10 +89,10 @@ class BatchController extends Controller
                 $transaction->rollBack();
             }   
         }
-    
+       return $this->apiValidate($model->errors);
         
     }
-      return $this->apiValidate($model->errors);
+   
 }
   public function actionUpdate($id)
 

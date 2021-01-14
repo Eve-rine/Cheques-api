@@ -19,5 +19,11 @@ return [
       'GET cheques/record/{id}' => 'cheques/record',
 
       'PUT cheques/number/{id}' => 'cheques/number',
+
+      'GET cheques/given' => 'cheques/given',
+
+       'GET cheques/download/{id}' => 'cheques/download',
+
+       'GET cheques/filter/{id}' => 'cheques/filter',
     
 ];

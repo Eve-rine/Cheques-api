@@ -101,6 +101,6 @@ return [
      * )
      */
     'GET banks/{id}' => 'banks/view',
-
+ 'GET banks/search' => 'banks/search',
    
 ];

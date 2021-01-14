@@ -73,7 +73,7 @@ class User extends ActiveRecord implements IdentityInterface
      */
     public function fields()
     {
-        return ['name', 'username', 'email', 'token', 'updated_at', 'created_at'];
+        return ['id','name', 'username', 'email', 'token', 'updated_at', 'created_at'];
     }
 
     /**

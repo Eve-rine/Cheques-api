@@ -17,12 +17,32 @@ class EventsController extends Controller
         $search['EventsSearch'] = Yii::$app->request->queryParams;
         $searchModel  = new EventsSearch();
         $dataProvider = $searchModel->search($search);
+        $dataProvider->query->having(['status' => 'complete']);
         return $this->apiCollection([
             'count'      => $dataProvider->count,
             'dataModels' => $dataProvider->models,
         ], $dataProvider->totalCount);
     }
 
+    public function actionCreated()
+    {
+        $dataRequest['Events'] = Yii::$app->request->getBodyParams();
+        $model = new Events();
+        if($model->load($dataRequest)) {
+            if (Yii::$app->user->identity->id != 1) {
+               return $this->apiPermission();
+            }else{
+
+            $model->category = 'allday';
+            $model->status = 'complete';
+             $model->dateMonth = date("M");
+            $model->created_by = Yii::$app->user->identity->id; 
+            $model->save(false);
+            return $this->apiCreated($model);
+        }
+        }
+        return $this->apiValidate($model->errors);
+    }
     public function actionCreate()
     {
         $dataRequest['Events'] = Yii::$app->request->getBodyParams();
@@ -32,12 +52,15 @@ class EventsController extends Controller
                return $this->apiPermission();
             }else{
             if ($model->status == 'Yes') {
+               if ($model->month != null) {
+                $month_arr = $model->month;
                 $year = date("Y");
-                 $month = date("M");
+                foreach ($month_arr as $month) {
                     // start day
                     $now = strtotime("{$year}-{$month}-01");
                     // end day
                     $end = strtotime('-1 second', strtotime('+1 month', $now));
+                    $monthYear = strtotime(date("Y-m-d"));
                     $day = intval(date("N", $now));
                    $weekends = [];
                    if ($day < 6) {
@@ -54,20 +77,36 @@ class EventsController extends Controller
                        $now += 518400;
                      }
                    }
-                     $model->title = "Weekend blocked";
-                     $model->dragBgColor = '#da2f24';
-                     // $model->start = date("yy-m-d");
-                     // $model->end = date("yy-m-d");
-
+                   foreach ($weekends as $timestamp) {
+                     $weekendDates = new Events();
+                     $weekendDates->title = "Weekend blocked";
+                     $weekendDates->bgColor = '#da2f24';
+                      $weekendDates->category = 'allday';
+                     $weekendDates->start = date("yy-m-d", $timestamp);
+                     $weekendDates->end = date("yy-m-d", $timestamp);
+                     $weekendDates->dateMonth = date("M", $timestamp);
+                     $weekendDates->status = 'complete';
+                     $weekendDates->created_by = Yii::$app->user->identity->id;
+                     $weekendDates->save(false);
+                   }
+                }
+               }
             }
+            $model->title="Weekend blocked";
+             $model->category = 'allday';
             $model->status = 'complete';
             $model->created_by = Yii::$app->user->identity->id; 
+            $model->dateMonth = date("M", strtotime($model->start));
+            $model->start = date("yy-m-d");
+            $model->end = date("yy-m-d");
+            $model->bgColor = '#da2f24';
             $model->save(false);
             return $this->apiCreated($model);
         }
         }
         return $this->apiValidate($model->errors);
     }
+
 
     public function actionUpdate($id)
     {
@@ -77,7 +116,6 @@ class EventsController extends Controller
             if (Yii::$app->user->identity->id != 1) {
                return $this->apiPermission();
             }else{
-            $model->status = 'complete';
             $model->created_by = Yii::$app->user->identity->id; 
             $model->save(false);
             return $this->apiUpdated($model);
@@ -91,16 +129,34 @@ class EventsController extends Controller
         return $this->apiItem($this->findModel($id));
     }
 
+    // public function actionDelete($id)
+    // {
+    //     if (Yii::$app->user->identity->id != 1) {
+    //            return $this->apiPermission();
+    //         }else{
+    //     if($this->findModel($id)->delete()) {
+    //         return $this->apiDeleted(true);
+    //     }
+    // }
+    //     return $this->apiDeleted(false);
+    // }
+
     public function actionDelete($id)
     {
-        if (Yii::$app->user->identity->id != 1) {
+        $dataRequest['Events'] = Yii::$app->request->getBodyParams();
+        $model= Events::findOne(['id'=>$id]);
+        if($model->load($dataRequest)) {
+            if (Yii::$app->user->identity->id != 1) {
                return $this->apiPermission();
             }else{
-        if($this->findModel($id)->delete()) {
-            return $this->apiDeleted(true);
+                $model->status='cancelled';
+            $model->created_by = Yii::$app->user->identity->id; 
+            $model->save(false);
+            return $this->apiUpdated($model);
+            }
         }
-    }
-        return $this->apiDeleted(false);
+
+        return $this->apiValidate($model->errors);
     }
 
     protected function findModel($id)

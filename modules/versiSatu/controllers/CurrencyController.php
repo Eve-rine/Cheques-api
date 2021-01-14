@@ -2,18 +2,22 @@
 
 namespace app\modules\versiSatu\controllers;
 
-use app\components\Controller;
-use app\models\Signatories;
-use yii\web\NotFoundHttpException;
-use app\models\search\SignatoriesSearch;
 use Yii;
+use app\models\Currency;
+use app\models\search\CurrencySearch;
+use app\components\Controller;
+use yii\web\NotFoundHttpException;
+use yii\filters\VerbFilter;
 
-class SignatoriesController extends Controller
+/**
+ * CurrencyController implements the CRUD actions for Currency model.
+ */
+class CurrencyController extends Controller
 {
-    public function actionIndex()
+  public function actionIndex()
     {
-        $search['SignatoriesSearch'] = Yii::$app->request->queryParams;
-        $searchModel  = new SignatoriesSearch();
+        $search['CurrencySearch'] = Yii::$app->request->queryParams;
+        $searchModel  = new CurrencySearch();
         $dataProvider = $searchModel->search($search);
 
         return $this->apiCollection([
@@ -24,24 +28,22 @@ class SignatoriesController extends Controller
 
     public function actionCreate()
     {
-        $dataRequest['Signatories'] = Yii::$app->request->getBodyParams();
-        $model = new Signatories();
-        if($model->load($dataRequest) ) {
-            $model->status="active";
-              $model->user_id=2;
-                   $model->created_by=Yii::$app->user->identity->id;
-            $model->save(false);
-
-
+        $dataRequest['Currency'] = Yii::$app->request->getBodyParams();
+        $model = new Currency();
+        if($model->load($dataRequest)) {
+            $model->status = 'complete';
+            $model->created_by = Yii::$app->user->identity->id; 
+          $model->save(false);
             return $this->apiCreated($model);
         }
 
         return $this->apiValidate($model->errors);
     }
 
+
     public function actionUpdate($id)
     {
-        $dataRequest['Signatories'] = Yii::$app->request->getBodyParams();
+        $dataRequest['Currency'] = Yii::$app->request->getBodyParams();
         $model = $this->findModel($id);
         if($model->load($dataRequest) && $model->save()) {
             return $this->apiUpdated($model);
@@ -65,20 +67,10 @@ class SignatoriesController extends Controller
 
     protected function findModel($id)
     {
-        if(($model = Signatories::findOne($id)) !== null) {
+        if(($model = Currency::findOne($id)) !== null) {
             return $model;
         } else {
             throw new NotFoundHttpException('Resource not found');
         }
     }
-
-
-
-// public function actionSignatories($id)
-
-// {
-
-//     return Comment::find()->where(['post' => $this->id])->count();
-
-// }
-
+}

@@ -26,6 +26,68 @@ class ChequesController extends Controller
             'dataModels' => $dataProvider->models,
         ], $dataProvider->totalCount);
     }
+
+        public function actionGiven()
+    {
+        $search['ChequesSearch'] = Yii::$app->request->queryParams;
+        $searchModel  = new ChequesSearch();
+        $dataProvider = $searchModel->search($search);
+        $dataProvider->query->where(['print_status'=> 10])->orWhere(['status'=> 'printed'])->orWhere(['status'=> 'closed']);
+
+        return $this->apiCollection([
+            'count'      => $dataProvider->count,
+            'dataModels' => $dataProvider->models,
+        ], $dataProvider->totalCount);
+    }
+
+        public function actionDownload($id)
+    {
+        $searchModel = new ChequesSearch();
+        $dataProvider = $searchModel->search(Yii::$app->request->queryParams);
+        $dataProvider->query->andWhere(['batch_id' => $id])
+        ->andWhere(['status' => 'complete'])
+        ->andWhere(['print_status' => 10]);
+        // get your HTML raw content without any layouts or scripts
+        $content = $this->renderPartial('/cheques/download', [
+                'dataProvider' => $dataProvider,
+            ]);
+        $batch= Batch::findOne(['batch_id'=>$id]);
+        $batch->status = 'printed';
+        $batch->save(false);
+        foreach (Cheques::find()->where(['batch_id' => $id])->all() as $cheque) {
+        $model= Cheques::findOne(['batch_id'=>$cheque->batch_id]);
+        $model->status = 'printed';
+        $model->save(false);
+        }
+        // setup kartik\mpdf\Pdf component
+        $pdf = new PdfbSix([
+
+            // set to use core fonts only
+            'mode' => PdfbSix::MODE_CORE, 
+            // A4 paper format
+            'format' => PdfbSix::FORMAT_B6, 
+            // portrait orientation
+            'orientation' => PdfbSix::ORIENT_LANDSCAPE, 
+            // stream to browser inline
+            'destination' => PdfbSix::DEST_BROWSER, 
+            // your html content input
+            'content' => $content,  
+            // format content from your own css file if needed or use the
+            // enhanced bootstrap css built by Krajee for mPDF formatting 
+            //'cssFile' => '@vendor/kartik-v/yii2-mpdf/assets/kv-mpdf-bootstrap.min.css',
+            // any css to be embedded if required
+            'cssInline' => '.cheque-view{background-color: #fff;border: 1px solid #888;height: 29.7cm}', 
+             // set mPDF properties on the fly
+            'options' => ['title' => 'Krajee Report Title'],
+             // call mPDF methods on the fly
+            // 'methods' => [ 
+            //     'SetHeader'=>['Krajee Report Header'], 
+            //     'SetFooter'=>['{PAGENO}'],
+            // ]
+        ]);
+        return $pdf->render(); 
+    }
+
      public function actionPrint($id)
     {
         $batch = (new \yii\db\Query())
@@ -151,16 +213,17 @@ class ChequesController extends Controller
             $cheque_no = str_pad($model->cheque_no,6,"0",STR_PAD_LEFT);
             $model->cheque_no = $cheque_no;
             $model->status = 'closed';
-            $row = (new \yii\db\Query())
-            ->from('cheques')
-            ->where(['like', 'cheque_no', $cheque_no])
-            ->andWhere(['like', 'account_id', $model->account_id])
-            ->one();
-            if ($row == null) {
-                $model->save(false);
-            }else{
-                return $this->apiChequeNumber($model);
-            }
+            $model->save();
+            // $row = (new \yii\db\Query())
+            // ->from('cheques')
+            // ->where(['like', 'cheque_no', $cheque_no])
+            // ->andWhere(['like', 'account_id', $model->account_id])
+            // ->one();
+            // if ($row == null) {
+            //     $model->save(false);
+            // }else{
+            //     return $this->apiChequeNumber($model);
+            // }
             return $this->apiUpdated($model);
         }
 
@@ -196,15 +259,10 @@ class ChequesController extends Controller
 
     public function actionView($id)
     {
-        $batch = (new \yii\db\Query())
-             ->select(['batch_id'])
-             ->from('batch')
-             ->where(['batch_id' => $id])
-             ->one();
-        $searchModel = new ChequesSearch();
-        $dataProvider = $searchModel->search(Yii::$app->request->queryParams);
-        $dataProvider->query->where(['batch_id'=>$batch]);
-
+        $search['ChequesSearch'] = Yii::$app->request->queryParams;
+        $searchModel  = new ChequesSearch();
+        $dataProvider = $searchModel->search($search);
+        $dataProvider->query->having(['batch_id' => $id]);
         return $this->apiCollection([
             'count'      => $dataProvider->count,
             'dataModels' => $dataProvider->models,

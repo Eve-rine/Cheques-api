@@ -70,9 +70,9 @@ class Banks extends ActiveRecord
         ];
     }
 
-    public function getBranches()
+    public function getBranchy()
 {
-    return $this->hasMany(Branches::className(), ['bank_id' => 'branch_id']);
+    return $this->hasMany(Branches::className(), ['bank_id' => 'bank_id']);
 }
     public function getAccounts()
 {

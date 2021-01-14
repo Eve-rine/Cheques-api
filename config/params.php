@@ -49,5 +49,5 @@ return [
 
     /* params for jwt */
     'secretKey' => 'restApiToken',
-    'expiresIn' => '+5 hours'
+    'expiresIn' => '+60 minutes',
 ];

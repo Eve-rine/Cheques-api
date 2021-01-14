@@ -102,4 +102,6 @@ return [
      */
     'GET signatories/{id}' => 'signatories/view',
 
+     'GET signatories/view/{id}' => 'signatories/view',
+
 ];

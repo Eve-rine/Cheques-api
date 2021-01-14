@@ -78,7 +78,7 @@ return [
      * )
      */
  
-    'PUT accounts/update/{id}' => 'accounts/update',
+    'PUT accounts/{id}' => 'accounts/update',
 
 
     /**
@@ -128,5 +128,8 @@ return [
      'GET accounts/search' => 'accounts/search',
 
      'POST accounts/upload/{id}' => 'accounts/upload',
+
+
+     'GET accounts/select/{id}' => 'accounts/select',
    
 ];

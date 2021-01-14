@@ -176,4 +176,23 @@ class Controller extends \yii\rest\Controller
             'data' => $data
         ];
     }
+        public function apiPermission($data = null, $message = false)
+    {
+        Yii::$app->response->statusCode = 422;
+        return [
+            'statusCode' => 422,
+            'message' => $message ? $message : 'No permissions to alter this data',
+            'data' => $data
+        ];
+    }
+
+    //     public function apiSignatory($data, $message = false)
+    // {
+    //     Yii::$app->response->statusCode = 422;
+    //     return [
+    //         'statusCode' => 422,
+    //         'message' => $message ? $message : 'Cheque number already exists',
+    //         'data' => $data
+    //     ];
+    // }
 }

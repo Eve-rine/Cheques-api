@@ -11,8 +11,8 @@ class AccountsSearch extends Accounts
     public function rules()
     {
         return [
-            [['bank_id','branch_id','account_id'], 'integer'],
-            [['bank_id','branch_id','account_name','account_number','kra_pin','minimum_signatories','status','created_by','created_at','updated_at'],'safe'],
+            [['bank_id','branch_id','account_id','currency_id'], 'integer'],
+            [['bank_id','branch_id','account_name','currency_id','account_number','kra_pin','status','created_by','created_at','updated_at'],'safe'],
         ];
     }
 

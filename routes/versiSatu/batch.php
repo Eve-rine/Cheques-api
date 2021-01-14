@@ -48,7 +48,7 @@ return [
      *     )
      * )
      */
-    'POST batch' => 'batch/create',
+    'POST batch/create' => 'batch/create',
 
     /**
      * @SWG\Put(
